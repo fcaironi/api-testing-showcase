@@ -1,0 +1,31 @@
+{
+  "name": "api-testing-showcase",
+  "version": "1.0.0",
+  "private": true,
+  "description": "REST API test suite: Axios + TypeScript + Zod contract checks, run with Playwright Test, reported with Allure",
+  "license": "MIT",
+  "scripts": {
+    "clean:results": "node -e \"require('fs').rmSync('allure-results', { recursive: true, force: true })\"",
+    "pretest": "npm run clean:results",
+    "test": "playwright test",
+    "pretest:mock": "npm run clean:results",
+    "test:mock": "cross-env USE_MOCK=1 playwright test",
+    "mock": "tsx mock/server.ts",
+    "report": "allure generate allure-results --clean",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "axios": "^1.20.0",
+    "zod": "^4.6.7"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.64.1",
+    "@types/node": "^26.6.5",
+    "allure": "^3.21.0",
+    "allure-js-commons": "^3.14.0",
+    "allure-playwright": "^3.14.0",
+    "cross-env": "^10.1.0",
+    "tsx": "^4.23.15",
+    "typescript": "^7.0.2"
+  }
+}

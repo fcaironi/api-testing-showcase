@@ -1,0 +1,53 @@
+name: API tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  api:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run typecheck
+      # Deterministic run against the local mock. Use `npm test` for the live public API.
+      - run: npm run test:mock
+      # Build the single-file Allure report even when tests fail.
+      - run: npm run report
+        if: always()
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: api-report
+          path: |
+            allure-report/
+            test-results/
+          retention-days: 14
+      - uses: actions/upload-pages-artifact@v3
+        if: always() && github.ref == 'refs/heads/main'
+        with:
+          path: allure-report
+
+  # Publishes the latest report from main at https://<user>.github.io/<repo>/
+  # One-time setup: repository Settings > Pages > Source: "GitHub Actions".
+  publish-report:
+    needs: api
+    if: always() && github.ref == 'refs/heads/main' && needs.api.result != 'cancelled'
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
